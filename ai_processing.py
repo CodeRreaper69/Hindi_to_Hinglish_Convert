@@ -18,7 +18,7 @@ load_dotenv()
 
 # Function to check if API key is set
 def is_api_key_set():
-    api_key = os.getenv("API_KEY")
+    api_key = st.secrets["GEMINI_API_KEY"]
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
