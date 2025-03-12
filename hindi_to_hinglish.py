@@ -53,11 +53,11 @@ st.markdown('<p class="main-title">Hindi to Hinglish Converter</p>', unsafe_allo
 st.markdown('<p class="info-text">Convert Hindi text from images or PDFs to Hinglish (Hindi written in Roman script)</p>', unsafe_allow_html=True)
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 # Function to check if API key is set
 def is_api_key_set():
-    api_key = os.getenv("API_KEY")
+    api_key = st.secrets["GEMINI_API_KEY"]
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
