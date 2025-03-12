@@ -14,7 +14,7 @@ import gc
 import fpdf  # Add this for PDF generation
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 # Function to check if API key is set
 def is_api_key_set():
