@@ -1,3 +1,5 @@
+# All code and functions at once, will be used if any error happens to the modularized code
+
 import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
