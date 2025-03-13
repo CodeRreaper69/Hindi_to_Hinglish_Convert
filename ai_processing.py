@@ -18,7 +18,7 @@ import fpdf  # Add this for PDF generation
 
 # Function to check if API key is set
 def is_api_key_set():
-    api_key = st.secrets["gemini"]["GEMINI_API_KEY"]
+    api_key = st.secrets["GEMINI_API_KEY"]
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
@@ -37,7 +37,7 @@ if not is_api_key_set():
 
 # Configure the API
 try:
-    GOOGLE_API_KEY = st.secrets["gemini"]["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
+    GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
