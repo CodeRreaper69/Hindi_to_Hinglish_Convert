@@ -57,8 +57,8 @@ st.markdown('<p class="info-text">Convert Hindi text from images or PDFs to Hing
 # Function to check if API key is set
 def is_api_key_set():
    # api_key = st.secrets["GEMINI_API_KEY"]
-    # api_key = os.environ.get("GEMINI_API_KEY")
-    api_key = "AIzaSyBQwi0-RyXrwxLFT1Fobb9fHOwXmMvT-Oc"
+    api_key = os.environ.get("GEMINI_API_KEY")
+    
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
