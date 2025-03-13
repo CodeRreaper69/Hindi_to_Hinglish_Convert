@@ -37,7 +37,7 @@ if not is_api_key_set():
 
 # Configure the API
 try:
-    GOOGLE_API_KEY = os.getenv("API_KEY") or st.session_state.get('api_key', '')
+    GOOGLE_API_KEY = st.secrets["gemini"]["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
