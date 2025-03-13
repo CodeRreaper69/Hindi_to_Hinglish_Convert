@@ -1,6 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import os
 from PIL import Image
 import time
@@ -10,8 +10,8 @@ import base64
 import io
 from io import BytesIO
 import gc
-import fpdf  # Add this for PDF generation
-
+import fpdf # Add this for PDF generation
+import os
 # Page configuration
 st.set_page_config(
     page_title="Hindi to Hinglish Converter",
@@ -56,7 +56,8 @@ st.markdown('<p class="info-text">Convert Hindi text from images or PDFs to Hing
 
 # Function to check if API key is set
 def is_api_key_set():
-    api_key = st.secrets["GEMINI_API_KEY"]
+   # api_key = st.secrets["GEMINI_API_KEY"]
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
