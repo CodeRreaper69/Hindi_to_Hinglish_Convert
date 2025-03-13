@@ -10,8 +10,8 @@ import base64
 import io
 from io import BytesIO
 import gc
-import fpdf # Add this for PDF generation
-import os
+import fpdf  # Add this for PDF generation
+
 # Page configuration
 st.set_page_config(
     page_title="Hindi to Hinglish Converter",
@@ -52,13 +52,11 @@ st.markdown('<p class="main-title">Hindi to Hinglish Converter</p>', unsafe_allo
 st.markdown('<p class="info-text">Convert Hindi text from images or PDFs to Hinglish (Hindi written in Roman script)</p>', unsafe_allow_html=True)
 
 # Load environment variables
-# load_dotenv()
+load_dotenv()
 
 # Function to check if API key is set
 def is_api_key_set():
-   # api_key = st.secrets["GEMINI_API_KEY"]
-    api_key = os.environ.get("GEMINI_API_KEY")
-    
+    api_key = st.secrets["GEMINI_API_KEY"]
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
@@ -77,9 +75,9 @@ if not is_api_key_set():
 
 # Configure the API
 try:
-    GOOGLE_API_KEY = os.environ.get("GEMINI_API_KEY") or st.session_state.get('api_key', '')
+    GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
     genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 except Exception as e:
     st.error(f"Error initializing the API: {e}")
     st.stop()
