@@ -1,23 +1,27 @@
+# AI processing files 
+
 import streamlit as st
 import google.generativeai as genai
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 from PIL import Image
-import tempfile
 import time
 import fitz  # PyMuPDF
 import re
 import base64
+import io
 from io import BytesIO
-import shutil
 import gc
 import fpdf  # Add this for PDF generation
 
+
+# Loading and Checking API calls
 # Load environment variables
 # load_dotenv()
 
 # Function to check if API key is set
 def is_api_key_set():
+    # api_key = os.getenv("API_KEY")
     api_key = st.secrets["GEMINI_API_KEY"]
     if not api_key:
         api_key = st.session_state.get('api_key', '')
@@ -37,23 +41,14 @@ if not is_api_key_set():
 
 # Configure the API
 try:
+    # GOOGLE_API_KEY = os.getenv("API_KEY") or st.session_state.get('api_key', '')
     GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
+    
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error(f"Error initializing the API: {e}")
     st.stop()
-
-def process_image(image):
-    with st.spinner("Converting image to Hinglish..."):
-        try:
-            prompt = create_prompt()
-            response = model.generate_content([prompt, image])
-            result = clean_response(response.text)
-            return result
-        except Exception as e:
-            st.error(f"Error processing image: {e}")
-            return None
 
 # Function to create Hinglish conversion prompt
 def create_prompt():
@@ -95,3 +90,14 @@ def clean_response(text):
     return text.strip()
     
     
+# Function to process a single image
+def process_image(image):
+    with st.spinner("Converting image to Hinglish..."):
+        try:
+            prompt = create_prompt()
+            response = model.generate_content([prompt, image])
+            result = clean_response(response.text)
+            return result
+        except Exception as e:
+            st.error(f"Error processing image: {e}")
+            return None
