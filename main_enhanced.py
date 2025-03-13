@@ -1,21 +1,22 @@
+# Main UI in streamlit file
 import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 from PIL import Image
-import tempfile
 import time
 import fitz  # PyMuPDF
 import re
 import base64
+import io
 from io import BytesIO
-import shutil
 import gc
 import fpdf  # Add this for PDF generation
 
-# importing from modules
-from doc_file_processing import safe_delete, text_to_pdf, extract_images_from_pdf, process_pdf, get_download_link
-from ai_processing import process_image, create_prompt, clean_response
+# Importing from rest of the folders - 
+from ai_processing import clean_response, process_image
+from doc_file_processing import text_to_pdf, extract_images_from_pdf, process_pdf, get_download_link
+
 
 
 # Page configuration
@@ -84,12 +85,14 @@ with st.expander("How to Use This App", expanded=False):
     - The app processes a maximum of 10 pages for PDF files
     - There is a built-in delay of 10 seconds between processing PDF pages to avoid API rate limits
     """)
+
 # Main app interface
 st.markdown('<p class="sub-title">Upload Options</p>', unsafe_allow_html=True)
 
 # Input type selection
 input_type = st.radio("Select input type:", ["Image", "PDF"])
 
+# Set delay
 delay_seconds = 10
 
 # File uploader
@@ -101,7 +104,7 @@ if input_type == "Image":
     if uploaded_file:
         st.image(uploaded_file, caption="Uploaded Image")
         
-        if st.button("Convert to Hinglish"):
+        if st.button("Convert to Hinglish / Hinglish me convert kare"):
             # Store image in memory instead of creating a temporary file
             image_bytes = uploaded_file.getvalue()
             image = Image.open(BytesIO(image_bytes))
@@ -113,16 +116,14 @@ if input_type == "Image":
                 image.close()
                 
                 if result:
-                    
                     st.markdown('<p class="sub-title">Hinglish Output</p>', unsafe_allow_html=True)
                     st.text_area("Hinglish Text", result, height=250)
                     
                     # Get original filename without extension
                     original_name = os.path.splitext(uploaded_file.name)[0]
                     download_filename = f"{original_name}_hinglish_converted.pdf"
-                    
                     st.markdown(get_download_link(result, filename=download_filename), unsafe_allow_html=True)
-                    st.toast(f"___Now you can download the converted Hinglish Text from below blue link in pdf format___")
+                    st.toast(":green[__Download From Below / Neeche se Download Kare__]")
                     st.balloons()
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -133,20 +134,22 @@ else:  # PDF option
     if uploaded_file:
         st.info(f"Uploaded: {uploaded_file.name}")
         
-        if st.button("Convert to Hinglish"):
-            result = process_pdf(uploaded_file, delay_seconds)
-            
-            if result:
-                st.markdown('<p class="sub-title">Hinglish Output</p>', unsafe_allow_html=True)
-                st.text_area("Hinglish Text", result, height=350)
+        if st.button("Convert to Hinglish / Hinglish me convert kare"):
+            try:
+                result = process_pdf(uploaded_file, delay_seconds)
                 
-                # Get original filename without extension
-                original_name = os.path.splitext(uploaded_file.name)[0]
-                download_filename = f"{original_name}_hinglish_converted.pdf"
-                
-                st.markdown(get_download_link(result, filename=download_filename), unsafe_allow_html=True)
-                st.toast("___Now you can download the converted Hinglish Text from below blue link in pdf format 'Download Hinglish Text as PDF___")
-                st.balloons()
+                if result:
+                    st.markdown('<p class="sub-title">Hinglish Output</p>', unsafe_allow_html=True)
+                    st.text_area("Hinglish Text", result, height=350)
+                    
+                    # Get original filename without extension
+                    original_name = os.path.splitext(uploaded_file.name)[0]
+                    download_filename = f"{original_name}_hinglish_converted.pdf"
+                    st.markdown(get_download_link(result, filename=download_filename), unsafe_allow_html=True)
+                    st.toast(":green[__Download From Below / Neeche se Download Kare__]")
+                    st.balloons()
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 # Footer
 st.markdown("---")
