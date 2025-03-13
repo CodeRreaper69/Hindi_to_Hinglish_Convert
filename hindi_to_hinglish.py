@@ -1,15 +1,14 @@
 import streamlit as st
 import google.generativeai as genai
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 from PIL import Image
-import tempfile
 import time
 import fitz  # PyMuPDF
 import re
 import base64
+import io
 from io import BytesIO
-import shutil
 import gc
 import fpdf  # Add this for PDF generation
 
@@ -122,34 +121,6 @@ def clean_response(text):
     
     return text.strip()
 
-# Function to safely delete a file with retries
-def safe_delete(file_path, max_retries=5, retry_delay=1):
-    """Safely delete a file with retries for Windows compatibility"""
-    if not os.path.exists(file_path):
-        return True
-        
-    for i in range(max_retries):
-        try:
-            # Force garbage collection to release file handles
-            gc.collect()
-            
-            # Try to delete the file
-            os.unlink(file_path)
-            return True
-        except PermissionError:
-            if i < max_retries - 1:
-                time.sleep(retry_delay)
-            else:
-                # If we still can't delete it after retries, just log the error
-                st.warning(f"Could not delete temporary file: {file_path}")
-                return False
-        except FileNotFoundError:
-            # File already gone
-            return True
-        except Exception as e:
-            st.warning(f"Error deleting file {file_path}: {e}")
-            return False
-
 # Function to create a PDF from text
 def text_to_pdf(text):
     pdf = fpdf.FPDF()
@@ -178,20 +149,19 @@ def process_image(image):
             st.error(f"Error processing image: {e}")
             return None
 
-# Function to extract images from PDF
-def extract_images_from_pdf(pdf_file, temp_dir):
-    image_files = []
-    temp_pdf_path = None
-    doc = None
+# Function to extract images from PDF using BytesIO instead of temp files
+def extract_images_from_pdf(pdf_file):
+    image_list = []
     
     try:
-        # Save the uploaded PDF to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_pdf:
-            tmp_pdf.write(pdf_file.read())
-            temp_pdf_path = tmp_pdf.name
+        # Read PDF file as bytes
+        pdf_bytes = pdf_file.read()
         
-        # Open the PDF with PyMuPDF
-        doc = fitz.open(temp_pdf_path)
+        # Create a BytesIO object to avoid saving to disk
+        pdf_stream = BytesIO(pdf_bytes)
+        
+        # Open the PDF with PyMuPDF using the BytesIO stream
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         total_pages = len(doc)
         
         # Check page limit
@@ -205,64 +175,57 @@ def extract_images_from_pdf(pdf_file, temp_dir):
         for page_num in range(total_pages):
             page = doc.load_page(page_num)
             pix = page.get_pixmap(matrix=fitz.Matrix(300/72, 300/72))
-            img_path = os.path.join(temp_dir, f"page_{page_num + 1}.png")
-            pix.save(img_path)
-            image_files.append(img_path)
+            
+            # Convert pixmap to PIL Image directly using BytesIO
+            img_bytes = pix.tobytes("png")
+            img_stream = BytesIO(img_bytes)
+            img = Image.open(img_stream)
+            
+            # Store PIL image in the list
+            image_list.append((page_num + 1, img))
             
             # Update progress
             progress_bar.progress((page_num + 1) / total_pages)
         
         progress_bar.empty()
-        return image_files, total_pages
+        return image_list, total_pages
     except Exception as e:
         st.error(f"Error extracting images from PDF: {e}")
         return [], 0
     finally:
-        # Close the document before trying to delete
-        if doc:
-            doc.close()
-            
-        # Clean up the temporary PDF file
-        if temp_pdf_path:
-            # Use a slight delay to ensure file handle is released
-            time.sleep(0.5)
-            safe_delete(temp_pdf_path)
-            
+        # Force garbage collection
+        gc.collect()
+
 # Function to process PDF
 def process_pdf(pdf_file, delay_seconds):
-    temp_dir = tempfile.mkdtemp()
     try:
         st.info("Extracting pages from PDF...")
-        image_files, total_pages = extract_images_from_pdf(pdf_file, temp_dir)
+        image_list, total_pages = extract_images_from_pdf(pdf_file)
         
-        if not image_files:
+        if not image_list:
             st.error("No pages could be extracted from the PDF.")
             return None
         
         combined_text = ""
         
         with st.expander("Processing Details", expanded=True):
-            for i, img_path in enumerate(image_files):
-                st.markdown(f"**Processing page {i+1}/{total_pages}**")
+            for page_num, image in image_list:
+                st.markdown(f"**Processing page {page_num}/{total_pages}**")
                 
                 try:
-                    # Open the image with PIL
-                    image = Image.open(img_path)
                     # Process the image
                     result = process_image(image)
-                    # Close the image to release file handle
-                    image.close()
                     
                     if result:
                         combined_text += result + "\n\n"
-                        st.success(f"Page {i+1} processed successfully")
+                        st.success(f"Page {page_num} processed successfully")
                     else:
-                        st.error(f"Failed to process page {i+1}")
+                        st.error(f"Failed to process page {page_num}")
                 except Exception as e:
-                    st.error(f"Error processing page {i+1}: {e}")
+                    st.error(f"Error processing page {page_num}: {e}")
                 
                 # Add delay between API calls to avoid rate limiting
-                if i < len(image_files) - 1:  # Don't delay after the last page
+                if page_num < total_pages:  # Don't delay after the last page
                     st.info(f"Waiting {delay_seconds} seconds before processing next page...")
                     time_placeholder = st.empty()
                     for remaining in range(delay_seconds, 0, -1):
@@ -272,35 +235,8 @@ def process_pdf(pdf_file, delay_seconds):
         
         return combined_text.strip()
     finally:
-        # Cleanup: remove the temporary directory and all its contents
-        try:
-            # Force garbage collection to release file handles
-            gc.collect()
-            # Wait a bit to ensure files are released
-            time.sleep(1)
-            # Use shutil which is more reliable for directory removal
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            
-            # Double-check if directory still exists and try another method
-            if os.path.exists(temp_dir):
-                # Try to remove files first
-                for root, dirs, files in os.walk(temp_dir):
-                    for file in files:
-                        safe_delete(os.path.join(root, file))
-                # Then try to remove empty directories
-                for root, dirs, files in os.walk(temp_dir, topdown=False):
-                    for dir in dirs:
-                        try:
-                            os.rmdir(os.path.join(root, dir))
-                        except:
-                            pass
-                # Finally try to remove the temp dir itself
-                try:
-                    os.rmdir(temp_dir)
-                except:
-                    st.warning(f"Note: Could not remove temporary directory: {temp_dir}")
-        except Exception as e:
-            st.warning(f"Note: Could not completely clean up temporary files. Some files may remain in temporary folders: {e}")
+        # Force garbage collection to release memory
+        gc.collect()
 
 # Function to create a download link for text as PDF
 def get_download_link(text, filename="hinglish_translation.pdf", link_text="Download Hinglish Text as PDF"):
@@ -316,10 +252,7 @@ st.markdown('<p class="sub-title">Upload Options</p>', unsafe_allow_html=True)
 # Input type selection
 input_type = st.radio("Select input type:", ["Image", "PDF"])
 
-# Delay setting
-# st.markdown('<p class="sub-title">API Call Delay Settings</p>', unsafe_allow_html=True)
-# st.markdown('<p class="warning-text">To avoid API rate limits, a delay is added between processing PDF pages</p>', unsafe_allow_html=True)
-# delay_seconds = st.slider("Delay between API calls (seconds):", min_value=5, max_value=30, value=10)
+# Set delay
 delay_seconds = 10
 
 # File uploader
@@ -329,7 +262,7 @@ if input_type == "Image":
     uploaded_file = st.file_uploader("Upload an image with Hindi text", type=["jpg", "jpeg", "png"])
     
     if uploaded_file:
-        st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
+        st.image(uploaded_file, caption="Uploaded Image")
         
         if st.button("Convert to Hinglish"):
             # Store image in memory instead of creating a temporary file
