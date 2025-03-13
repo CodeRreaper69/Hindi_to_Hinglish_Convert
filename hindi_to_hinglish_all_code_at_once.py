@@ -12,6 +12,7 @@ from io import BytesIO
 import gc
 import fpdf  # Add this for PDF generation
 
+
 # Page configuration
 st.set_page_config(
     page_title="Hindi to Hinglish Converter",
@@ -51,12 +52,40 @@ st.markdown("""
 st.markdown('<p class="main-title">Hindi to Hinglish Converter</p>', unsafe_allow_html=True)
 st.markdown('<p class="info-text">Convert Hindi text from images or PDFs to Hinglish (Hindi written in Roman script)</p>', unsafe_allow_html=True)
 
+with st.expander("How to Use This App", expanded=False):
+    st.markdown("""
+    ## How to Use the Hindi to Hinglish Converter
+
+    This application converts Hindi text found in images or PDFs to Hinglish (Hindi written in Roman script). Follow these simple steps to use the app:
+    ### Step 1: Select Input Type
+    - Choose either **Image** or **PDF** option depending on your source file
+
+    ### Step 2: Upload Your File
+    - For **Image**: Upload a JPG, JPEG, or PNG file containing Hindi text
+    - For **PDF**: Upload a PDF file containing Hindi text (maximum 10 pages)
+
+    ### Step 3: Convert
+    - Click the **Convert to Hinglish** button to start the conversion process
+    - For PDFs, the app will process each page with a short delay between pages to avoid API rate limits
+
+    ### Step 4: View and Download Results
+    - Once processing is complete, the converted Hinglish text will appear in the text area
+    - Click the **Download Hinglish Text as PDF** link which is in blue color, to save the conversion as a PDF file
+    - The downloaded file will be named using your original filename with "_hinglish_converted" added to it
+
+    ### Notes:
+    - The conversion quality depends on the clarity of the Hindi text in your original file
+    - For better results, ensure your images are clear and text is easily readable
+    - The app processes a maximum of 10 pages for PDF files
+    - There is a built-in delay of 10 seconds between processing PDF pages to avoid API rate limits
+    """)
+
 # Load environment variables
 load_dotenv()
 
 # Function to check if API key is set
 def is_api_key_set():
-    api_key = st.secrets["GEMINI_API_KEY"]
+    api_key = os.getenv("API_KEY")
     if not api_key:
         api_key = st.session_state.get('api_key', '')
     return bool(api_key)
@@ -75,9 +104,9 @@ if not is_api_key_set():
 
 # Configure the API
 try:
-    GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
+    GOOGLE_API_KEY = os.getenv("API_KEY") or st.session_state.get('api_key', '')
     genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error(f"Error initializing the API: {e}")
     st.stop()
@@ -239,7 +268,7 @@ def process_pdf(pdf_file, delay_seconds):
         gc.collect()
 
 # Function to create a download link for text as PDF
-def get_download_link(text, filename="hinglish_translation.pdf", link_text="Download Hinglish Text as PDF"):
+def get_download_link(text, filename="hinglish_translation.pdf", link_text="Download Hinglish Text as PDF/ Hinglish Text Download Kare"):
     """Generates a link to download the text as a PDF file"""
     pdf_bytes = text_to_pdf(text)
     b64 = base64.b64encode(pdf_bytes.getvalue()).decode()
@@ -264,7 +293,7 @@ if input_type == "Image":
     if uploaded_file:
         st.image(uploaded_file, caption="Uploaded Image")
         
-        if st.button("Convert to Hinglish"):
+        if st.button("Convert to Hinglish / Hinglish me convert kare"):
             # Store image in memory instead of creating a temporary file
             image_bytes = uploaded_file.getvalue()
             image = Image.open(BytesIO(image_bytes))
@@ -283,7 +312,7 @@ if input_type == "Image":
                     original_name = os.path.splitext(uploaded_file.name)[0]
                     download_filename = f"{original_name}_hinglish_converted.pdf"
                     st.markdown(get_download_link(result, filename=download_filename), unsafe_allow_html=True)
-                    st.toast("___Now you can download the converted Hinglish Text from below blue link in pdf format 'Download Hinglish Text as PDF___")
+                    st.toast(":green[__Download From Below / Neeche se Download Kare__]")
                     st.balloons()
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -294,7 +323,7 @@ else:  # PDF option
     if uploaded_file:
         st.info(f"Uploaded: {uploaded_file.name}")
         
-        if st.button("Convert to Hinglish"):
+        if st.button("Convert to Hinglish / Hinglish me convert kare"):
             result = process_pdf(uploaded_file, delay_seconds)
             
             if result:
@@ -305,7 +334,7 @@ else:  # PDF option
                 original_name = os.path.splitext(uploaded_file.name)[0]
                 download_filename = f"{original_name}_hinglish_converted.pdf"
                 st.markdown(get_download_link(result, filename=download_filename), unsafe_allow_html=True)
-                st.toast("___Now you can download the converted Hinglish Text from below blue link in pdf format 'Download Hinglish Text as PDF___")
+                st.toast(":green[__Download From Below / Neeche se Download Kare__]")
                 st.balloons()
 
 # Footer
