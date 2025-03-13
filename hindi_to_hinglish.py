@@ -172,7 +172,7 @@ def extract_images_from_pdf(pdf_file):
             total_pages = 10
         
         # Create progress bar
-        # progress_bar = st.progress(0)
+        progress_bar = st.progress(0)
         
         for page_num in range(total_pages):
             page = doc.load_page(page_num)
@@ -187,9 +187,9 @@ def extract_images_from_pdf(pdf_file):
             image_list.append((page_num + 1, img))
             
             # Update progress
-            # progress_bar.progress((page_num + 1) / total_pages)
+            progress_bar.progress((page_num + 1) / total_pages)
         
-        # progress_bar.empty()
+        progress_bar.empty()
         return image_list, total_pages
     except Exception as e:
         st.error(f"Error extracting images from PDF: {e}")
