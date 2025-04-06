@@ -45,7 +45,7 @@ try:
     GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"] or st.session_state.get('api_key', '')
     
     genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 except Exception as e:
     st.error(f"Error initializing the API: {e}")
     st.stop()
