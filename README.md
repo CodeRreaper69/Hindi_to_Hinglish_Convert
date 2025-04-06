@@ -41,17 +41,30 @@ This application leverages Google's Gemini 2.0 Flash model to accurately transli
 
 ## Screenshots
 
-### Image Conversion Interface
-![Image Hindi to Hinglish](/image/image_Hindi_to_Hinglish.jpg)
-
-### PDF Conversion Interface
-![PDF Conversion](/image/PDF_Conversion.jpg)
-
-### Conversion Results
-![Conversion Result](/image/Conversion_Result.jpg)
-
-### Text Output Example
-![Conversion Result Text](/image/Conversion_Result_text.jpg)
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <strong>Image Conversion Interface</strong><br>
+        <img src="/image/image_Hindi_to_Hinglish.jpg" alt="Image Hindi to Hinglish" width="100%">
+      </td>
+      <td align="center" width="50%">
+        <strong>PDF Conversion Interface</strong><br>
+        <img src="/image/PDF_Conversion.jpg" alt="PDF Conversion" width="100%">
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <strong>Conversion Results</strong><br>
+        <img src="/image/Conversion_Result.jpg" alt="Conversion Result" width="100%">
+      </td>
+      <td align="center" width="50%">
+        <strong>Text Output Example</strong><br>
+        <img src="/image/Conversion_Result_text.jpg" alt="Conversion Result Text" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
 
 ## Technical Implementation
 
