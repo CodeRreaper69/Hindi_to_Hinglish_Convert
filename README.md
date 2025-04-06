@@ -46,7 +46,7 @@ This application leverages Google's Gemini 2.0 Flash model to accurately transli
     <tr>
       <td align="center" width="50%">
         <strong>Image Conversion Interface</strong><br>
-        <img src="/image/image_Hindi_to_Hinglish.jpg" alt="Image Hindi to Hinglish" width="100%">
+        <img src="/image/Image_Hindi_to_Hinglish.jpg" alt="Image Hindi to Hinglish" width="100%">
       </td>
       <td align="center" width="50%">
         <strong>PDF Conversion Interface</strong><br>
