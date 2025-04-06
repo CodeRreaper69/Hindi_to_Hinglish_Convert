@@ -42,16 +42,16 @@ This application leverages Google's Gemini 2.0 Flash model to accurately transli
 ## Screenshots
 
 ### Image Conversion Interface
-![Image Hindi to Hinglish](/image/Image_Hindi_to_Hinglish/screenshot.png)
+![Image Hindi to Hinglish](/image/image_Hindi_to_Hinglish.jpg)
 
 ### PDF Conversion Interface
-![PDF Conversion](/image/PDF_Conversion/screenshot.png)
+![PDF Conversion](/image/PDF_Conversion.jpg)
 
 ### Conversion Results
-![Conversion Result](/image/Conversion_Result/screenshot.png)
+![Conversion Result](/image/Conversion_Result.jpg)
 
 ### Text Output Example
-![Conversion Result Text](/image/Conversion_Result_text/screenshot.png)
+![Conversion Result Text](/image/Conversion_Result_text.jpg)
 
 ## Technical Implementation
 
